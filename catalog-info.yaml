@@ -1,0 +1,11 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: checkout
+  description: checkout service
+  annotations:
+    github.com/project-slug: entr0pian/checkout
+spec:
+  type: service
+  lifecycle: experimental
+  owner: checkout-team

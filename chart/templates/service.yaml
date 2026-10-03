@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Chart.Name }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    {{- with .Values.platform.component }}
+    platform.taskapp.io/component: {{ . | quote }}
+    {{- end }}
+    {{- with .Values.platform.environment }}
+    platform.taskapp.io/environment: {{ . | quote }}
+    {{- end }}
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+  ports:
+    - name: http
+      port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.port }}
+      protocol: TCP

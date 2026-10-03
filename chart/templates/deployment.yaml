@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    {{- with .Values.platform.component }}
+    platform.taskapp.io/component: {{ . | quote }}
+    {{- end }}
+    {{- with .Values.platform.environment }}
+    platform.taskapp.io/environment: {{ . | quote }}
+    {{- end }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Chart.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ .Chart.Name }}
+        {{- with .Values.platform.component }}
+        platform.taskapp.io/component: {{ . | quote }}
+        {{- end }}
+        {{- with .Values.platform.environment }}
+        platform.taskapp.io/environment: {{ . | quote }}
+        {{- end }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: {{ .Values.service.port }}
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: {{ .Values.service.port }}
+        {{- if .Values.bindings.database }}
+          env:
+            - name: SERVICE_BINDING_ROOT
+              value: /bindings
+          volumeMounts:
+            - name: binding-database
+              mountPath: /bindings/database
+              readOnly: true
+        {{- end }}
+      {{- if .Values.bindings.database }}
+      volumes:
+        - name: binding-database
+          secret:
+            secretName: {{ .Chart.Name }}-binding-database
+      {{- end }}
